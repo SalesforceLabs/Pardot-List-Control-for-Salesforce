@@ -9,6 +9,9 @@
  * 1.0   13-07-2021   Jonathan Fox   Initial Version
 **/
 import { LightningElement, api } from 'lwc';
+import createList from '@salesforce/apex/PardotListControlLWCController.createList';
+import queryList from '@salesforce/apex/PardotListControlLWCController.queryList';
+import addProspectToList from '@salesforce/apex/PardotListControlLWCController.addToList';
 
 export default class PardotListControl extends LightningElement {
     @api recordId;
@@ -18,11 +21,14 @@ export default class PardotListControl extends LightningElement {
     isAddToList = false;
 
     //Text value
-    createListTextValue = 'List A';
+    createListTextNameValue = 'List A';
+    createListTextDescriptionValue = 'List A';
     listNameSearchValue = 'List A';
 
     //Return results
     listFound = false;
+    multipleListsFound = false;
+    listId = '';
 
 
     //-- Modal Handlers --//
@@ -39,14 +45,26 @@ export default class PardotListControl extends LightningElement {
         this.isAddToList = false;
     }
 
-    handleCreateListTextValueChange(event){
-        this.createListTextValue = event.value;
+    handleCreateListTextNameValue(event){
+        this.createListTextNameValue = event.value;
+    }
+    handlecreateListTextDescriptionValue(event){
+        this.createListTextDescriptionValue = event.value;
     }
 
     createList(){
-        let listName = this.createListTextValue;
-        //Maybe on apex promise
-        this.resetCmp();
+        let listName = this.createListTextNameValue;
+        let listDescription = this.createListTextDescriptionValue;
+        createList({listName : listName, listDescription : listDescription})
+            .then(result => {
+                if(result == true){
+                    this.resetCmp();
+                }
+            })
+            .catch(error => {
+                this.error = error;
+                //Throw error toast
+            });
     }
 
     handleListNameSearchValueChange(event){
@@ -54,20 +72,33 @@ export default class PardotListControl extends LightningElement {
     }
 
     handleSearch(){
-        //call Apex
-        //If result found
-        //this.listFound = true;
+        queryList({listName : this.listNameSearchValue})
+            .then(result => {
+                this.listId = result;
+                if(result){
+                    this.listFound = true;
+                }
+            })
+            .catch(error => {
+                this.error = error;
+                //Throw error toast
+            });
     }
+
     addToList(){
-        let listName;
         if(this.listFound = true){
-            listName = this.listNameSearchValue;
-            //call apex
+            let listId = this.listId;
+            addProspectToList({listId : listId, prospectId})
+            .then(result => {
+                this.resetCmp();
+            })
+            .catch(error => {
+                this.error = error;
+                //Throw error toast
+            });
         }else{
             //throw error
         }
-        //Maybe on apex promise
-        this.resetCmp();
     }
 
 

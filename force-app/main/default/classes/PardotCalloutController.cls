@@ -8,14 +8,14 @@
  * Ver   Date         Author         Modification
  * 1.0   14-07-2021   Jonathan Fox   Initial Version
 **/
+
+
+//TO DO:
+// PASS IN ? STORE BUID
 public class PardotCalloutController {
 
     public static HTTPResponse createList(String listName, String listDesc){
         HttpRequest req = new HttpRequest();
-        
-        
-        //Bussiness unit is not retrivable either? SO will have to be passed in as a param or stored in custom meta where the customer can set up using
-        //an app page for us to have a 'set up' page
         req.setHeader('Pardot-Business-Unit-Id', '0Uv4L000000004DSAQ');
         req.setMethod('POST');
         String name = 'name='+listName+'&Title='+listName;
@@ -27,16 +27,11 @@ public class PardotCalloutController {
         Http http = new Http();
         HTTPResponse res = http.send(req);
         System.debug(res.getBody());
-        
         return res;
     }
 
     public static HTTPResponse queryList(String listName){
         HttpRequest req = new HttpRequest();
-        
-        
-        //Bussiness unit is not retrivable either? SO will have to be passed in as a param or stored in custom meta where the customer can set up using
-        //an app page for us to have a 'set up' page
         req.setHeader('Pardot-Business-Unit-Id', '0Uv4L000000004DSAQ');
         req.setMethod('GET');
         String name = 'name='+listName;
@@ -45,17 +40,11 @@ public class PardotCalloutController {
         Http http = new Http();
         HTTPResponse res = http.send(req);
         System.debug(res.getBody());
-        
         return res;
     }
 
     public static HTTPResponse addToList(String listId, String prospectId){
-
         HttpRequest req = new HttpRequest();
-        
-        
-        //Bussiness unit is not retrivable either? SO will have to be passed in as a param or stored in custom meta where the customer can set up using
-        //an app page for us to have a 'set up' page
         req.setHeader('Pardot-Business-Unit-Id', '0Uv4L000000004DSAQ');
         req.setMethod('POST');
         req.setEndpoint('callout:APEX_Pardot_Credential/listMembership/version/4/do/create/list_id/'+listId+'/prospect_id/'+prospectId+'?');
