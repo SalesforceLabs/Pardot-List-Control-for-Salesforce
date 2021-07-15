@@ -2,13 +2,14 @@
  * @description       : 
  * @author            : Jonathan Fox
  * @group             : 
- * @last modified on  : 14-07-2021
+ * @last modified on  : 15-07-2021
  * @last modified by  : Jonathan Fox
  * Modifications Log 
  * Ver   Date         Author         Modification
  * 1.0   13-07-2021   Jonathan Fox   Initial Version
 **/
 import { LightningElement, api } from 'lwc';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import createList from '@salesforce/apex/PardotListControlLWCController.createList';
 import queryList from '@salesforce/apex/PardotListControlLWCController.queryList';
 import addProspectToList from '@salesforce/apex/PardotListControlLWCController.addToList';
@@ -21,14 +22,17 @@ export default class PardotListControl extends LightningElement {
     isAddToList = false;
 
     //Text value
-    createListTextNameValue = 'List A';
-    createListTextDescriptionValue = 'List A';
-    listNameSearchValue = 'List A';
+    createListTextNameValue = '';
+    createListTextDescriptionValue = '';
+    listNameSearchValue = '';
 
     //Return results
     listFound = false;
     multipleListsFound = false;
     listId = '';
+
+    //Search values
+    usingListName = true;
 
 
     //-- Modal Handlers --//
@@ -46,16 +50,15 @@ export default class PardotListControl extends LightningElement {
     }
 
     handleCreateListTextNameValue(event){
-        this.createListTextNameValue = event.value;
+        this.createListTextNameValue = event.target.value;
     }
-    handlecreateListTextDescriptionValue(event){
-        this.createListTextDescriptionValue = event.value;
+    handleCreateListTextDescriptionValue(event){
+        this.createListTextDescriptionValue = event.target.value;
     }
 
     createList(){
-        let listName = this.createListTextNameValue;
-        let listDescription = this.createListTextDescriptionValue;
-        createList({listName : listName, listDescription : listDescription})
+        console.log('listName :' + this.createListTextNameValue + '>> ' + 'listDescription :' + this.createListTextDescriptionValue);
+        createList({listName : this.createListTextNameValue, listDescription : this.createListTextDescriptionValue})
             .then(result => {
                 if(result == true){
                     this.resetCmp();
@@ -63,41 +66,96 @@ export default class PardotListControl extends LightningElement {
             })
             .catch(error => {
                 this.error = error;
-                //Throw error toast
+                const toastEvent = new ShowToastEvent({
+                    title: 'Error',
+                    message: error.body.message,
+                    variant: 'error',
+                    mode: 'dismissable'
+                });
+                this.dispatchEvent(toastEvent);
             });
     }
 
     handleListNameSearchValueChange(event){
-        this.listNameSearchValue = event.value;
+        this.listNameSearchValue = event.target.value;
     }
 
+    //NEED TO HANDLE MORE THAN ONE LIST RETURNED
     handleSearch(){
-        queryList({listName : this.listNameSearchValue})
+        if(this.usingListName === true){
+            queryList({param : this.listNameSearchValue, isListName : true})
             .then(result => {
-                this.listId = result;
+                this.listIdMap = result;
+                console.log('this.listIdMap >' + this.listIdMap);
                 if(result){
                     this.listFound = true;
+                    if(result.size > 1){
+                        this.multipleListsFound = true
+                    }
                 }
             })
             .catch(error => {
                 this.error = error;
-                //Throw error toast
+                console.log(error);
+                const toastEvent = new ShowToastEvent({
+                    title: 'Error',
+                    message: error.body.message,
+                    variant: 'error',
+                    mode: 'dismissable'
+                });
+                this.dispatchEvent(toastEvent);
             });
+        }else{
+            queryList({param : this.listNameSearchValue, isListName : false})
+            .then(result => {
+                this.listIdMap = result;
+                console.log('this.listIdMap >' + this.listIdMap);
+                if(result){
+                    this.listFound = true;
+                    if(result.size > 1){
+                        this.multipleListsFound = true
+                    }
+                }
+            })
+            .catch(error => {
+                this.error = error;
+                const toastEvent = new ShowToastEvent({
+                    title: 'Error',
+                    message: error.body.message,
+                    variant: 'error',
+                    mode: 'dismissable'
+                });
+                this.dispatchEvent(toastEvent);
+            });
+        }
+        
     }
 
     addToList(){
         if(this.listFound = true){
             let listId = this.listId;
-            addProspectToList({listId : listId, prospectId})
+            addProspectToList({listId : listId, recordId : this.recordId})
             .then(result => {
                 this.resetCmp();
             })
             .catch(error => {
                 this.error = error;
-                //Throw error toast
+                const toastEvent = new ShowToastEvent({
+                    title: 'Error',
+                    message: error.body.message,
+                    variant: 'error',
+                    mode: 'dismissable'
+                });
+                this.dispatchEvent(toastEvent);t
             });
         }else{
-            //throw error
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: 'You need to have a valid list to add the prospect to.',
+                variant: 'error',
+                mode: 'dismissable'
+            });
+            this.dispatchEvent(toastEvent);
         }
     }
 
