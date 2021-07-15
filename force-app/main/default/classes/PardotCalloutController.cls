@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Jonathan Fox
  * @group             : 
- * @last modified on  : 14-07-2021
+ * @last modified on  : 15-07-2021
  * @last modified by  : Jonathan Fox
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -13,7 +13,7 @@
 //TO DO:
 // PASS IN ? STORE BUID
 public class PardotCalloutController {
-
+    public class PardotCalloutControllerException extends Exception{}
     public static HTTPResponse createList(String listName, String listDesc){
         HttpRequest req = new HttpRequest();
         req.setHeader('Pardot-Business-Unit-Id', '0Uv4L000000004DSAQ');
@@ -30,12 +30,20 @@ public class PardotCalloutController {
         return res;
     }
 
-    public static HTTPResponse queryList(String listName){
+    public static HTTPResponse queryList(String listName, String listId){
+        String searchTerm;
+        if(listName != null && listId == null){
+            searchTerm = 'name='+listName;
+        }else if(listId != null && listName == null){
+            searchTerm = 'list_id='+listId;
+        }else{
+            throw new PardotCalloutControllerException('Either no list name or list ID was provided OR both search terms were passed into the method');
+        }
+        
         HttpRequest req = new HttpRequest();
         req.setHeader('Pardot-Business-Unit-Id', '0Uv4L000000004DSAQ');
         req.setMethod('GET');
-        String name = 'name='+listName;
-        req.setBody(name);
+        req.setBody(searchTerm);
         req.setEndpoint('callout:APEX_Pardot_Credential/list/version/4/do/query?format=json');
         Http http = new Http();
         HTTPResponse res = http.send(req);
