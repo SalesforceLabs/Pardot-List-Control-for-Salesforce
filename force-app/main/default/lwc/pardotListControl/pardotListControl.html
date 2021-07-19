@@ -71,28 +71,75 @@
                                         <lightning-input type="text" 
                                                         label="Enter List Name"
                                                         value={listNameSearchValue} 
-                                                        onchange={handleListNameSearchValueChange}></lightning-input>
+                                                        onchange={handleListNameSearchValueChange}
+                                                        read-only={searchTextReadOnly}
+                                                        required
+                                                        >
+                                        </lightning-input>
+                                    
+                                        <lightning-radio-group name="SearchSelection"
+                                                                label="Choose how to search for your list"
+                                                                options={SearchOptions}
+                                                                value={SearchOptionsValue}
+                                                                onchange={handleSearchOptionsValueChange}
+                                                                required
+                                                                type="radio">
+                                        </lightning-radio-group>
                                     </div>
                                 </div> 
                             </lightning-layout-item>
                             <lightning-layout-item size="12" small-device-size="2" medium-device-size="2" large-device-size="2" padding="around-small">
-                                <lightning-button label="Search" 
-                                                    variant="brand" 
-                                                    onclick={handleSearch}></lightning-button>
-                                </lightning-layout-item>
-                            </lightning-layout>
-                            <br/>
-                            <template if:true={listFound}>
-                                 <lightning-badge label="List Found" icon-name="utility:success"></lightning-badge>
+                                <lightning-layout>
+                                    <lightning-layout-item padding="around-small">
+                                        <div class="slds-text-align_center">
+                                            <lightning-button label="Search" 
+                                                        variant="brand" 
+                                                        onclick={handleSearch}
+                                                        disabled={searchButtonDisabled}>
+                                        </lightning-button>
+                                        </div>
+                                    </lightning-layout-item>
+                                    <lightning-layout-item padding="around-small">
+                                        <div class="slds-text-align_center">
+                                            <lightning-button label="Reset" 
+                                                    variant="destructive" 
+                                                    onclick={resetSearch}>
+                                            </lightning-button>
+                                        </div>
+                                    </lightning-layout-item>
+                                </lightning-layout>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                        <br/>
+                        <template if:false={noListFound}>
+                            <lightning-badge label="List Found" icon-name="utility:success"></lightning-badge>
+                            <template if:true={multipleListsFound}>
+                                <lightning-badge label="Multiple List Found" icon-name="utility:success"></lightning-badge>
                             </template>
-                            <template if:false={listFound}>
-                                <lightning-badge label="No List Found" icon-name="utility:error"></lightning-badge>
-                            </template>
+                        </template>
+                        <template if:true={noListFound}>
+                            <lightning-badge label="No List Found" icon-name="utility:error"></lightning-badge>
+                        </template>
+                        <template class=slds-p-top_medium  if:true={multipleListsFound}>
+                            <div>
+                            <p>Please copy the Id, click the reset button and search by Id to return one result</p>
+                            </div>
+                            <lightning-datatable
+                                        data-id="datarow"
+                                        columns={columns}
+                                        data={listArray}
+                                        key-field="Id"
+                                        onrowselection={handleRowSelect}
+                                        sorted-by={sortBy}
+                                        sorted-direction={sortDirection}
+                                        onsort={doSorting}>
+                                    </lightning-datatable>
+                        </template>
                     </div>
                     <!-- Modal for add to list footer starts here -->
                     <footer class="slds-modal__footer">
                         <button class="slds-button slds-button_neutral" onclick={handleCloseModal} title="Cancel">Cancel</button>
-                        <button class="slds-button slds-button_brand" onclick={addToList} title="OK">OK</button>
+                        <button class="slds-button slds-button_brand" onclick={addToList} disabled={addToListButtonDisabled} title="Add Record To List">Add Record To List</button>
                     </footer>
                 </div>
             </section>

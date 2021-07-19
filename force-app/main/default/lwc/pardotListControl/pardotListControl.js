@@ -2,13 +2,13 @@
  * @description       : 
  * @author            : Jonathan Fox
  * @group             : 
- * @last modified on  : 15-07-2021
+ * @last modified on  : 19-07-2021
  * @last modified by  : Jonathan Fox
  * Modifications Log 
  * Ver   Date         Author         Modification
  * 1.0   13-07-2021   Jonathan Fox   Initial Version
 **/
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import createList from '@salesforce/apex/PardotListControlLWCController.createList';
 import queryList from '@salesforce/apex/PardotListControlLWCController.queryList';
@@ -25,14 +25,36 @@ export default class PardotListControl extends LightningElement {
     createListTextNameValue = '';
     createListTextDescriptionValue = '';
     listNameSearchValue = '';
+    searchTextReadOnly = false;
 
     //Return results
-    listFound = false;
+    singleListFound = false;
     multipleListsFound = false;
-    listId = '';
+    noListFound = true;
+    listIdObj;
+    listArray = [];
+    
 
     //Search values
-    usingListName = true;
+    SearchOptionsValue;
+    searchButtonDisabled = true;
+    addToListButtonDisabled = true;
+
+    get SearchOptions() {
+        return [
+            { label: 'By Name', value: 'byName' },
+            { label: 'By ID', value: 'byId' },
+        ];
+    }
+
+    columns = [
+        { label: 'Id', fieldName: 'Id', type: "text", sortable: "true"},
+        { label: 'Name', fieldName: 'Name', type: "text", sortable: "true" }
+    ];
+    sortBy;
+    sortDirection;
+    selectedRow = [];
+    
 
 
     //-- Modal Handlers --//
@@ -45,8 +67,7 @@ export default class PardotListControl extends LightningElement {
     }
 
     handleCloseModal(){
-        this.isCreateList = false;
-        this.isAddToList = false;
+        this.resetCmp();
     }
 
     handleCreateListTextNameValue(event){
@@ -65,7 +86,6 @@ export default class PardotListControl extends LightningElement {
                 }
             })
             .catch(error => {
-                this.error = error;
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -78,24 +98,41 @@ export default class PardotListControl extends LightningElement {
 
     handleListNameSearchValueChange(event){
         this.listNameSearchValue = event.target.value;
+        if(this.SearchOptionsValue != null && this.listNameSearchValue != ''){
+            this.searchButtonDisabled = false;
+        }
+    }
+
+    handleSearchOptionsValueChange(event){
+        this.SearchOptionsValue = event.detail.value;
+        console.log(this.SearchOptionsValue + ' : ' + this.listNameSearchValue);
+        if(this.SearchOptionsValue != null && this.listNameSearchValue != ''){
+            this.searchButtonDisabled = false;
+        }
     }
 
     //NEED TO HANDLE MORE THAN ONE LIST RETURNED
     handleSearch(){
-        if(this.usingListName === true){
+        this.searchTextReadOnly = true;
+        this.searchButtonDisabled = true;
+        if(this.SearchOptionsValue == 'byName'){
             queryList({param : this.listNameSearchValue, isListName : true})
             .then(result => {
-                this.listIdMap = result;
-                console.log('this.listIdMap >' + this.listIdMap);
-                if(result){
-                    this.listFound = true;
-                    if(result.size > 1){
-                        this.multipleListsFound = true
-                    }
+                console.log(result);
+                console.log(JSON.stringify(result));
+                this.listIdObj = result;
+                console.log(typeof this.listIdObj);
+                for (let [key, value] of Object.entries(this.listIdObj)) {
+                    console.log(key);
+                    console.log(value);
+                    let listObj = {Id:key, Name:value};
+                    console.log(listObj);
+                    this.listArray.push(listObj);
+                    console.log(this.listArray);
                 }
+                this.handleResults();
             })
             .catch(error => {
-                this.error = error;
                 console.log(error);
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
@@ -108,17 +145,11 @@ export default class PardotListControl extends LightningElement {
         }else{
             queryList({param : this.listNameSearchValue, isListName : false})
             .then(result => {
-                this.listIdMap = result;
-                console.log('this.listIdMap >' + this.listIdMap);
-                if(result){
-                    this.listFound = true;
-                    if(result.size > 1){
-                        this.multipleListsFound = true
-                    }
-                }
+                this.listIdObj = result;
+                console.log('this.listIdObj >' + this.listIdObj);
+                this.handleResults();
             })
             .catch(error => {
-                this.error = error;
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -131,6 +162,23 @@ export default class PardotListControl extends LightningElement {
         
     }
 
+    handleResults(){
+        console.log(typeof this.listArray);
+        console.log(this.listArray.length);
+        if(this.listArray != null){
+            if(this.listArray.length > 1){
+                this.multipleListsFound = true;
+                this.noListFound = false;
+            }else if(this.listArray.length == 1){
+                this.singleListFound = true;
+            }else {
+                this.noListFound = true;
+            }
+        }else{
+            this.noListFound = true;
+        }
+    }
+
     addToList(){
         if(this.listFound = true){
             let listId = this.listId;
@@ -139,7 +187,6 @@ export default class PardotListControl extends LightningElement {
                 this.resetCmp();
             })
             .catch(error => {
-                this.error = error;
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -160,9 +207,82 @@ export default class PardotListControl extends LightningElement {
     }
 
 
+    doSorting(event) {
+        this.sortBy = event.detail.fieldName;
+        this.sortDirection = event.detail.sortDirection;
+        this.sortData(this.sortBy, this.sortDirection);
+    }
+
+    sortData(fieldname, direction) {
+        let parseData = JSON.parse(JSON.stringify(this.listArray));
+        // Return the value stored in the field
+        let keyValue = (a) => {
+            return a[fieldname];
+        };
+        // cheking reverse direction
+        let isReverse = direction === 'asc' ? 1: -1;
+        // sorting data
+        parseData.sort((x, y) => {
+            x = keyValue(x) ? keyValue(x) : ''; // handling null values
+            y = keyValue(y) ? keyValue(y) : '';
+            // sorting values based on direction
+            return isReverse * ((x > y) - (y > x));
+        });
+        this.listArray = parseData;
+    }
+
+    handleRowSelect(event){
+        var selectedRows = event.detail.selectedRows;
+        if(selectedRows.length > 1){
+            var el = this.template.querySelector('lightning-datatable');
+            selectedRows = el.selectedRows = el.selectedRows.slice(1);
+            this.selectedRow = selectedRows;
+            console.log(this.selectedRow);
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: 'Only one row can be selected',
+                variant: 'warning',
+                mode: 'pester'
+            });
+            this.dispatchEvent(toastEvent);
+            event.preventDefault();
+        }else{
+            this.selectedRow = event.detail.selectedRows;
+            console.log(this.selectedRow);
+        }
+        console.log(this.selectedRow);
+    }
+
+
     resetCmp(){
         this.isCreateList = false;
         this.isAddToList = false;
-        this.createListTextValue = 'List A'
+        this.createListTextNameValue = '';
+        this.createListTextDescriptionValue = '';
+        this.listNameSearchValue = '';
+        this.searchTextReadOnly = false;
+        this.singleListFound = false;
+        this.multipleListsFound = false;
+        this.noListFound = true;
+        this.listIdObj;
+        this.listArray = [];
+        this.SearchOptionsValue;
+        this.searchButtonDisabled = true;
+        this.addToListButtonDisabled = true;
+    }
+
+    resetSearch(){
+        this.createListTextNameValue = '';
+        this.createListTextDescriptionValue = '';
+        this.listNameSearchValue = '';
+        this.searchTextReadOnly = false;
+        this.singleListFound = false;
+        this.multipleListsFound = false;
+        this.noListFound = true;
+        this.listIdObj;
+        this.listArray = [];
+        this.SearchOptionsValue;
+        this.searchButtonDisabled = true;
+        this.addToListButtonDisabled = true;
     }
 }
