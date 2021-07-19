@@ -84,13 +84,13 @@ export default class PardotListControl extends LightningElement {
                 if(result == true){
                     this.resetCmp();
                 }
-                const toastEvent = new ShowToastEvent({
+                const toastEventSuccess = new ShowToastEvent({
                     title: 'Success',
                     message: 'List Created!',
                     variant: 'success',
                     mode: 'dismissable'
                 });
-                this.dispatchEvent(toastEvent);
+                this.dispatchEvent(toastEventSuccess);
             })
             .catch(error => {
                 const toastEvent = new ShowToastEvent({
@@ -138,13 +138,13 @@ export default class PardotListControl extends LightningElement {
                     console.log(this.listArray);
                 }
                 this.handleResults();
-                const toastEvent = new ShowToastEvent({
+                const toastEventSuccess = new ShowToastEvent({
                     title: 'Success',
                     message: 'List(s) Found!',
                     variant: 'success',
                     mode: 'dismissable'
                 });
-                this.dispatchEvent(toastEvent);
+                this.dispatchEvent(toastEventSuccess);
             })
             .catch(error => {
                 console.log(error);
@@ -199,13 +199,13 @@ export default class PardotListControl extends LightningElement {
             addProspectToList({listId : listId, recordId : this.recordId})
             .then(result => {
                 this.resetCmp();
-                const toastEvent = new ShowToastEvent({
+                const toastEventSuccess = new ShowToastEvent({
                     title: 'Success',
                     message: 'Member Added To List!',
                     variant: 'success',
                     mode: 'dismissable'
                 });
-                this.dispatchEvent(toastEvent);
+                this.dispatchEvent(toastEventSuccess);
             })
             .catch(error => {
                 const toastEvent = new ShowToastEvent({
