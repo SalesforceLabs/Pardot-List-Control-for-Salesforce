@@ -25,9 +25,7 @@ public with sharing class PardotListControlLWCController {
 
     @AuraEnabled
     public static Boolean createList(String listName, String listDescription){
-
         HTTPResponse response = PardotCalloutController.createList(listName, listDescription);
-
         if(response.getStatusCode() > 299 || response.getStatusCode() < 200){
             throw new PardotListControlLWCControllerException('Failed to create list - ' + response.getBody());
         }else{
@@ -38,44 +36,49 @@ public with sharing class PardotListControlLWCController {
     @AuraEnabled
     public static Map<String, String> queryList(String param, Boolean isListName){
         HTTPResponse response;
-        if(isListName){
-            response = PardotCalloutController.queryList(param, null);
-        }else{
-            response = PardotCalloutController.queryList(null, param);
-        }
         Map<String, String> idToListNameMap = new Map<String, String>();
-        if(response.getStatusCode() > 299 || response.getStatusCode() < 200){
-            throw new PardotListControlLWCControllerException('Failed to query lists - ' + response.getBody());
-        }else{
-            Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(response.getBody());
-            Map<String, Object> results = (Map<String, Object>) responseMap.get('result');
-            List<Object> listObj = new List<Object>();
-            if(Integer.valueOf(results.get('total_results')) > 1){
-                listObj = (List<Object>) results.get('list');
-            }
-            if(listObj.size() > 1){
-                for(Object o : listObj){
-                    String listObjSerialised = JSON.serialize(o);
+        if(isListName){
+            response = PardotCalloutController.queryList(param);
+            if(response.getStatusCode() > 299 || response.getStatusCode() < 200){
+                throw new PardotListControlLWCControllerException('Failed to query lists - ' + response.getBody());
+            }else{
+                Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(response.getBody());
+                Map<String, Object> results = (Map<String, Object>) responseMap.get('result');
+                List<Object> listObj = new List<Object>();
+                if(Integer.valueOf(results.get('total_results')) > 1){
+                    listObj = (List<Object>) results.get('list');
+                }
+                if(listObj.size() > 1){
+                    for(Object o : listObj){
+                        String listObjSerialised = JSON.serialize(o);
+                        PardotList parList = (PardotList)JSON.deserialize(listObjSerialised, PardotList.class);
+                        idToListNameMap.put(parList.id, parList.name);
+                    }
+                }else if(results.get('total_results') == 1){
+                    String listObjSerialised = JSON.serialize(results.get('list'));
                     PardotList parList = (PardotList)JSON.deserialize(listObjSerialised, PardotList.class);
                     idToListNameMap.put(parList.id, parList.name);
+                }else{
+                    throw new PardotListControlLWCControllerException('No lists found');
                 }
-            }else if(results.get('total_results') == 1){
-                String listObjSerialised = JSON.serialize(results.get('list'));
-                PardotList parList = (PardotList)JSON.deserialize(listObjSerialised, PardotList.class);
-                idToListNameMap.put(parList.id, parList.name);
-            }else{
-                throw new PardotListControlLWCControllerException('No lists found');
+                return idToListNameMap;
             }
+        }else{
+            response = PardotCalloutController.queryListById(param);
+            Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(response.getBody());
+            Map<String, Object> results = (Map<String, Object>) responseMap.get('list');
+            Integer intId = (Integer)results.get('id');
+            String sId = String.valueOf(intId);
+            String sName = (String)results.get('name');
+            idToListNameMap.put(sId, sName);
             return idToListNameMap;
         }
     }
 
     @AuraEnabled
     public static void addToList(String listId, String recordId){
-        System.debug('listId ' + listId + ' - ' + 'recordId ' + recordId);
         Id recId = (Id)recordId;
         String sobjectType = recId.getSObjectType().getDescribe().getName();
-        System.debug('sobjectType > ' + sobjectType);
         String pardotURL;
         String prospectId;
         if(sobjectType == 'Contact'){
