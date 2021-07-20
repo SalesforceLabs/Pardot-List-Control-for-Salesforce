@@ -2,6 +2,7 @@
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>52.0</apiVersion>
     <isExposed>true</isExposed>
+    <masterLabel>Pardot List Control - By Salesforce Labs</masterLabel>
     <description>Whilst on a Lead or Contact record, easily add to or create a new Pardot List.</description>
     <targets>
         <target>lightning__RecordPage</target>
