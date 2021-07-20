@@ -31,7 +31,6 @@ export default class PardotListControl extends LightningElement {
     //Return results
     singleListFound = false;
     multipleListsFound = false;
-    noListFound = true;
     listIdObj;
     listArray = [];
     
@@ -156,6 +155,7 @@ export default class PardotListControl extends LightningElement {
             })
             .catch(error => {
                 this.showSpinner = false;
+                
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -176,12 +176,8 @@ export default class PardotListControl extends LightningElement {
         if(this.listArray != null){
             if(this.listArray.length > 1){
                 this.multipleListsFound = true;
-                this.noListFound = false;
             }else if(this.listArray.length == 1){
                 this.singleListFound = true;
-                this.noListFound = false;
-            }else {
-                this.noListFound = true;
             }
         }else{
             this.noListFound = true;

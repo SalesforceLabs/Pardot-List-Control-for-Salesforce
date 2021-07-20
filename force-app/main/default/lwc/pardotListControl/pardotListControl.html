@@ -1,22 +1,22 @@
 <template>
-
-
      <lightning-card>
         <h3 slot="title">
-            <lightning-icon icon-name="utility:connected_apps" size="small"></lightning-icon>
-            Pardot List Control
+            <lightning-layout>
+                <lightning-layout-item class="slds-p-right_small">
+                    <lightning-icon icon-name="standard:list_email" size="small"></lightning-icon>
+                </lightning-layout-item>
+                <lightning-layout-item>
+                    Pardot List Control
+                </lightning-layout-item>
+            </lightning-layout>
         </h3>
-        <p class="slds-p-horizontal_small">
-            <lightning-button-group>
-                <lightning-button label="Create New Pardot List" onclick={handleCreateList}></lightning-button>
-                <lightning-button label="Add This Record to Existing Pardot List" onclick={handleAddToList}></lightning-button>
-            </lightning-button-group>
-        </p>
+        <div class="slds-p-around_small">
+            <lightning-button variant="brand" label="Create New Pardot List" onclick={handleCreateList}></lightning-button>
+        </div>
+        <div class="slds-p-left_small">
+            <lightning-button variant="brand" label="Add This Record to Existing Pardot List" onclick={handleAddToList}></lightning-button>
+        </div>
     </lightning-card>
-
-
-
-
         <template if:true={isCreateList}>
             <section role="dialog" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
@@ -55,10 +55,6 @@
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
-
-
-
-
          <template if:true={isAddToList}>
             <section role="dialog" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
@@ -128,12 +124,20 @@
                         <template if:true={multipleListsFound}>
                             <lightning-badge class="slds-theme_warning" label="Multiple List Found"></lightning-badge>
                         </template>
-                        <template if:true={noListFound}>
-                            <lightning-badge class="slds-theme_error" label="No List Found"></lightning-badge>
+                        <template class=slds-p-top_medium  if:true={singleListFound}>
+                            <div class="slds-p-around_medium">
+                            <p>Please check the list Id before clickign the checkbox and continuing:</p>
+                            </div>
+                            <lightning-datatable
+                                        data-id="datarow"
+                                        columns={columns}
+                                        data={listArray}
+                                        key-field="Id">
+                                    </lightning-datatable>
                         </template>
                         <template class=slds-p-top_medium  if:true={multipleListsFound}>
                             <div class="slds-p-around_medium">
-                            <p>Please select the list with the correct Id</p>
+                            <p>Please select the list with the correct Id:</p>
                             </div>
                             <lightning-datatable
                                         data-id="datarow"
