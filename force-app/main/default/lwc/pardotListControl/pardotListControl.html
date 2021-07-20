@@ -1,4 +1,6 @@
 <template>
+
+
      <lightning-card>
         <h3 slot="title">
             <lightning-icon icon-name="utility:connected_apps" size="small"></lightning-icon>
@@ -11,11 +13,16 @@
             </lightning-button-group>
         </p>
     </lightning-card>
+
+
+
+
         <template if:true={isCreateList}>
-            <!-- Modal for create list starts here -->
             <section role="dialog" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
-                    <!-- Modal/Popup Box LWC header here -->
+                    <template if:true={showSpinner}>
+                        <lightning-spinner alternative-text="Loading"></lightning-spinner>
+                    </template>
                     <header class="slds-modal__header">
                         <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseModal}>
                             <lightning-icon icon-name="utility:close"
@@ -26,8 +33,10 @@
                         </button>
                         <h2 class="slds-text-heading_medium slds-hyphenate">Create Pardot List</h2>
                     </header>
-                    <!-- Modal for create list body starts here -->
                     <div class="slds-modal__content slds-p-around_medium">
+                        <template if:true={showSpinner}>
+                            <lightning-spinner alternative-text="Loading"></lightning-spinner>
+                        </template>
                         <p><b>
                         </b></p>
                         <div class="slds-p-around_medium lgc-bg">
@@ -38,7 +47,6 @@
                         </div>
                         </b></p>
                     </div>
-                    <!-- Modal for create list footer starts here -->
                     <footer class="slds-modal__footer">
                         <button class="slds-button slds-button_neutral" onclick={handleCloseModal} title="Cancel">Cancel</button>
                         <button class="slds-button slds-button_brand" onclick={createList} title="OK">OK</button>
@@ -47,11 +55,13 @@
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
+
+
+
+
          <template if:true={isAddToList}>
-            <!-- Modal for add to list starts here -->
             <section role="dialog" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
-                    <!-- Modal/Popup Box LWC header here -->
                     <header class="slds-modal__header">
                         <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseModal}>
                             <lightning-icon icon-name="utility:close"
@@ -62,8 +72,10 @@
                         </button>
                         <h2 class="slds-text-heading_medium slds-hyphenate">Add Record to Pardot List</h2>
                     </header>
-                    <!-- Modal for add to list body starts here -->
                     <div class="slds-modal__content slds-p-around_medium">
+                        <template if:true={showSpinner}>
+                            <lightning-spinner alternative-text="Loading"></lightning-spinner>
+                        </template>
                         <lightning-layout multiple-rows="true" vertical-align="end">
                             <lightning-layout-item size="12" small-device-size="10" medium-device-size="8" large-device-size="6" padding="around-small">
                                 <div class="slds-form-element">
@@ -76,7 +88,6 @@
                                                         required
                                                         >
                                         </lightning-input>
-                                    
                                         <lightning-radio-group name="SearchSelection"
                                                                 label="Choose how to search for your list"
                                                                 options={SearchOptions}
@@ -112,17 +123,17 @@
                         </lightning-layout>
                         <br/>
                         <template if:true={singleListFound}>
-                            <lightning-badge label="List Found" icon-name="utility:success"></lightning-badge>
+                            <lightning-badge class="slds-theme_success" label="List Found"></lightning-badge>
                         </template>
                         <template if:true={multipleListsFound}>
-                            <lightning-badge label="Multiple List Found" icon-name="utility:success"></lightning-badge>
+                            <lightning-badge class="slds-theme_warning" label="Multiple List Found"></lightning-badge>
                         </template>
                         <template if:true={noListFound}>
-                            <lightning-badge label="No List Found" icon-name="utility:error"></lightning-badge>
+                            <lightning-badge class="slds-theme_error" label="No List Found"></lightning-badge>
                         </template>
                         <template class=slds-p-top_medium  if:true={multipleListsFound}>
-                            <div>
-                            <p>Please select the list with teh correct ID</p>
+                            <div class="slds-p-around_medium">
+                            <p>Please select the list with the correct Id</p>
                             </div>
                             <lightning-datatable
                                         data-id="datarow"
@@ -136,7 +147,6 @@
                                     </lightning-datatable>
                         </template>
                     </div>
-                    <!-- Modal for add to list footer starts here -->
                     <footer class="slds-modal__footer">
                         <button class="slds-button slds-button_neutral" onclick={handleCloseModal} title="Cancel">Cancel</button>
                         <button class="slds-button slds-button_brand" onclick={addToList} disabled={addToListButtonDisabled} title="Add Record To List">Add Record To List</button>
@@ -145,4 +155,5 @@
             </section>
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
+
 </template>

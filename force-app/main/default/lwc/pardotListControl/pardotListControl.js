@@ -20,6 +20,7 @@ export default class PardotListControl extends LightningElement {
     //Modal controls
     isCreateList = false;
     isAddToList = false;
+    showSpinner = false;
 
     //Text value
     createListTextNameValue = '';
@@ -74,8 +75,10 @@ export default class PardotListControl extends LightningElement {
     }
 
     createList(){
+        this.showSpinner = true;
         createList({listName : this.createListTextNameValue, listDescription : this.createListTextDescriptionValue})
             .then(result => {
+                this.showSpinner = false;
                 if(result == true){
                     this.resetCmp();
                 }
@@ -88,6 +91,7 @@ export default class PardotListControl extends LightningElement {
                 this.dispatchEvent(toastEventSuccess);
             })
             .catch(error => {
+                this.showSpinner = false;
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -114,11 +118,13 @@ export default class PardotListControl extends LightningElement {
     }
 
     handleSearch(){
+        this.showSpinner = true;
         this.searchTextReadOnly = true;
         this.searchButtonDisabled = true;
         if(this.SearchOptionsValue == 'byName'){
             queryList({param : this.listNameSearchValue, isListName : true})
             .then(result => {
+                this.showSpinner = false;
                 this.listIdObj = result;
                 this.handleResults();
                 this.isAddToListDisabled();
@@ -131,6 +137,7 @@ export default class PardotListControl extends LightningElement {
                 this.dispatchEvent(toastEventSuccess);
             })
             .catch(error => {
+                this.showSpinner = false;
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -142,12 +149,13 @@ export default class PardotListControl extends LightningElement {
         }else{
             queryList({param : this.listNameSearchValue, isListName : false})
             .then(result => {
+                this.showSpinner = false;
                 this.listIdObj = result;
-                
                 this.handleResults();
                 this.isAddToListDisabled();
             })
             .catch(error => {
+                this.showSpinner = false;
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -238,9 +246,11 @@ export default class PardotListControl extends LightningElement {
     }
 
     addToList(){
+        this.showSpinner = true;
         let localListId = this.listArray.length == 1 ? this.listArray[0].Id : this.selectedRow[0];
         addProspectToList({listId : localListId, recordId : this.recordId})
         .then(result => {
+            this.showSpinner = false;
             this.resetCmp();
             const toastEventSuccess = new ShowToastEvent({
                 title: 'Success',
@@ -251,6 +261,7 @@ export default class PardotListControl extends LightningElement {
             this.dispatchEvent(toastEventSuccess);
         })
         .catch(error => {
+            this.showSpinner = false;
             const toastEvent = new ShowToastEvent({
                 title: 'Error',
                 message: error.body.message,
@@ -259,7 +270,6 @@ export default class PardotListControl extends LightningElement {
             });
             this.dispatchEvent(toastEvent);t
         });
-        
     }
 
     resetCmp(){
