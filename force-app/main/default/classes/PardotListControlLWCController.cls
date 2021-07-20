@@ -82,18 +82,18 @@ public with sharing class PardotListControlLWCController {
         String pardotURL;
         String prospectId;
         if(sobjectType == 'Contact'){
-            Contact c = [Select Id, pi__url__c from Contact WHERE Id = :recordId];
+            Contact c = [Select Id, pi__url__c from Contact WHERE Id = :recordId WITH SECURITY_ENFORCED];
             if(c.pi__url__c != null){
-                pardotURL = [Select Id, pi__url__c from Contact WHERE Id = :recordId].pi__url__c;
+                pardotURL = c.pi__url__c;
                 prospectId = pardotURL.substringAfter('id=');
             }else{
                 throw new PardotListControlLWCControllerException('This person is not a Pardot prospect!');
             }
             
         }else if(sobjectType == 'Lead'){
-            Lead l = [Select Id, pi__url__c from Lead WHERE Id = :recordId];
+            Lead l = [Select Id, pi__url__c from Lead WHERE Id = :recordId WITH SECURITY_ENFORCED];
             if(l.pi__url__c != null){
-                pardotURL = [Select Id, pi__url__c from Lead WHERE Id = :recordId].pi__url__c;
+                pardotURL = l.pi__url__c;
                 prospectId = pardotURL.substringAfter('id=');
             }else{
                 throw new PardotListControlLWCControllerException('This person is not a Pardot prospect!');
