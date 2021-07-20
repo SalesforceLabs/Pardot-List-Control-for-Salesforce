@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Jonathan Fox
  * @group             : 
- * @last modified on  : 19-07-2021
+ * @last modified on  : 20-07-2021
  * @last modified by  : Jonathan Fox
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -118,26 +118,15 @@ export default class PardotListControl extends LightningElement {
         }
     }
 
-    //NEED TO HANDLE MORE THAN ONE LIST RETURNED
     handleSearch(){
         this.searchTextReadOnly = true;
         this.searchButtonDisabled = true;
         if(this.SearchOptionsValue == 'byName'){
             queryList({param : this.listNameSearchValue, isListName : true})
             .then(result => {
-                console.log(result);
-                console.log(JSON.stringify(result));
                 this.listIdObj = result;
-                console.log(typeof this.listIdObj);
-                for (let [key, value] of Object.entries(this.listIdObj)) {
-                    console.log(key);
-                    console.log(value);
-                    let listObj = {Id:key, Name:value};
-                    console.log(listObj);
-                    this.listArray.push(listObj);
-                    console.log(this.listArray);
-                }
                 this.handleResults();
+                this.isAddToListDisabled();
                 const toastEventSuccess = new ShowToastEvent({
                     title: 'Success',
                     message: 'List(s) Found!',
@@ -162,6 +151,7 @@ export default class PardotListControl extends LightningElement {
                 this.listIdObj = result;
                 console.log('this.listIdObj >' + this.listIdObj);
                 this.handleResults();
+                this.isAddToListDisabled();
             })
             .catch(error => {
                 const toastEvent = new ShowToastEvent({
@@ -177,14 +167,19 @@ export default class PardotListControl extends LightningElement {
     }
 
     handleResults(){
-        console.log(typeof this.listArray);
-        console.log(this.listArray.length);
+        for (let [key, value] of Object.entries(this.listIdObj)) {
+            let listObj = {Id:key, Name:value};
+            this.listArray.push(listObj);
+        }
+        console.log('***************');
+        console.log(this.listArray);
         if(this.listArray != null){
             if(this.listArray.length > 1){
                 this.multipleListsFound = true;
                 this.noListFound = false;
             }else if(this.listArray.length == 1){
                 this.singleListFound = true;
+                this.noListFound = false;
             }else {
                 this.noListFound = true;
             }
@@ -193,38 +188,41 @@ export default class PardotListControl extends LightningElement {
         }
     }
 
+    isAddToListDisabled(){
+        let firstResultFinal = this.listArray.length == 1 ? true : false;
+        let selectedRowResultFinal = this.selectedRow.length == 1 ? true : false;
+        if(firstResultFinal === true || selectedRowResultFinal === true ){
+            this.addToListButtonDisabled = false;
+        }
+    }
+
     addToList(){
-        if(this.listFound = true){
-            let listId = this.listId;
-            addProspectToList({listId : listId, recordId : this.recordId})
-            .then(result => {
-                this.resetCmp();
-                const toastEventSuccess = new ShowToastEvent({
-                    title: 'Success',
-                    message: 'Member Added To List!',
-                    variant: 'success',
-                    mode: 'dismissable'
-                });
-                this.dispatchEvent(toastEventSuccess);
-            })
-            .catch(error => {
-                const toastEvent = new ShowToastEvent({
-                    title: 'Error',
-                    message: error.body.message,
-                    variant: 'error',
-                    mode: 'dismissable'
-                });
-                this.dispatchEvent(toastEvent);t
+        let localListId = this.listArray.length == 1 ? this.listArray[0].Id : this.selectedRow[0];
+        console.log(this.listArray);
+        console.log('**********' + this.selectedRow);
+        console.log(localListId);
+        
+        addProspectToList({listId : localListId, recordId : this.recordId})
+        .then(result => {
+            this.resetCmp();
+            const toastEventSuccess = new ShowToastEvent({
+                title: 'Success',
+                message: 'Member Added To List!',
+                variant: 'success',
+                mode: 'dismissable'
             });
-        }else{
+            this.dispatchEvent(toastEventSuccess);
+        })
+        .catch(error => {
             const toastEvent = new ShowToastEvent({
                 title: 'Error',
-                message: 'You need to have a valid list to add the prospect to.',
+                message: error.body.message,
                 variant: 'error',
                 mode: 'dismissable'
             });
-            this.dispatchEvent(toastEvent);
-        }
+            this.dispatchEvent(toastEvent);t
+        });
+        
     }
 
 
@@ -255,10 +253,11 @@ export default class PardotListControl extends LightningElement {
     handleRowSelect(event){
         var selectedRows = event.detail.selectedRows;
         if(selectedRows.length > 1){
-            var el = this.template.querySelector('lightning-datatable');
+            let el = this.template.querySelector('lightning-datatable');
             selectedRows = el.selectedRows = el.selectedRows.slice(1);
             this.selectedRow = selectedRows;
-            console.log(this.selectedRow);
+            console.log('this.selectedRow ' + this.selectedRow);
+            this.isAddToListDisabled();
             const toastEvent = new ShowToastEvent({
                 title: 'Error',
                 message: 'Only one row can be selected',
@@ -267,11 +266,14 @@ export default class PardotListControl extends LightningElement {
             });
             this.dispatchEvent(toastEvent);
             event.preventDefault();
-        }else{
-            this.selectedRow = event.detail.selectedRows;
+        }else if(selectedRows.length == 1){
+            let el = this.template.querySelector('lightning-datatable');
+            selectedRows = el.selectedRows;
+            this.selectedRow = selectedRows;
             console.log(this.selectedRow);
+            this.isAddToListDisabled();
         }
-        console.log(this.selectedRow);
+        console.log('+++++++++' + this.selectedRow);
     }
 
 

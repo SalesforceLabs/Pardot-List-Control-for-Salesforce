@@ -111,18 +111,18 @@
                             </lightning-layout-item>
                         </lightning-layout>
                         <br/>
-                        <template if:false={noListFound}>
+                        <template if:true={singleListFound}>
                             <lightning-badge label="List Found" icon-name="utility:success"></lightning-badge>
-                            <template if:true={multipleListsFound}>
-                                <lightning-badge label="Multiple List Found" icon-name="utility:success"></lightning-badge>
-                            </template>
+                        </template>
+                        <template if:true={multipleListsFound}>
+                            <lightning-badge label="Multiple List Found" icon-name="utility:success"></lightning-badge>
                         </template>
                         <template if:true={noListFound}>
                             <lightning-badge label="No List Found" icon-name="utility:error"></lightning-badge>
                         </template>
                         <template class=slds-p-top_medium  if:true={multipleListsFound}>
                             <div>
-                            <p>Please copy the Id, click the reset button and search by Id to return one result</p>
+                            <p>Please select the list with teh correct ID</p>
                             </div>
                             <lightning-datatable
                                         data-id="datarow"

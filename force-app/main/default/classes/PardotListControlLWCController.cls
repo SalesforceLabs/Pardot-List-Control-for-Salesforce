@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Jonathan Fox
  * @group             : 
- * @last modified on  : 15-07-2021
+ * @last modified on  : 20-07-2021
  * @last modified by  : Jonathan Fox
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -72,17 +72,29 @@ public with sharing class PardotListControlLWCController {
 
     @AuraEnabled
     public static void addToList(String listId, String recordId){
+        System.debug('listId ' + listId + ' - ' + 'recordId ' + recordId);
         Id recId = (Id)recordId;
         String sobjectType = recId.getSObjectType().getDescribe().getName();
         System.debug('sobjectType > ' + sobjectType);
         String pardotURL;
         String prospectId;
         if(sobjectType == 'Contact'){
-            pardotURL = [Select Id, pi__url__c from Contact WHERE Id = :recordId].pi__url__c;
-            prospectId = pardotURL.substringAfter('id=');
+            Contact c = [Select Id, pi__url__c from Contact WHERE Id = :recordId];
+            if(c.pi__url__c != null){
+                pardotURL = [Select Id, pi__url__c from Contact WHERE Id = :recordId].pi__url__c;
+                prospectId = pardotURL.substringAfter('id=');
+            }else{
+                throw new PardotListControlLWCControllerException('This person is not a Pardot prospect!');
+            }
+            
         }else if(sobjectType == 'Lead'){
-            pardotURL = [Select Id, pi__url__c from Lead WHERE Id = :recordId].pi__url__c;
-            prospectId = pardotURL.substringAfter('id=');
+            Lead l = [Select Id, pi__url__c from Lead WHERE Id = :recordId];
+            if(l.pi__url__c != null){
+                pardotURL = [Select Id, pi__url__c from Lead WHERE Id = :recordId].pi__url__c;
+                prospectId = pardotURL.substringAfter('id=');
+            }else{
+                throw new PardotListControlLWCControllerException('This person is not a Pardot prospect!');
+            }
         }else{
             throw new PardotListControlLWCControllerException('Could not find Pardot Prospect ID');
         }
