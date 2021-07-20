@@ -39,24 +39,20 @@ export default class PardotListControl extends LightningElement {
     SearchOptionsValue;
     searchButtonDisabled = true;
     addToListButtonDisabled = true;
-
+    sortBy;
+    sortDirection;
+    selectedRow = [];
     get SearchOptions() {
         return [
             { label: 'By Name', value: 'byName' },
             { label: 'By ID', value: 'byId' },
         ];
     }
-
     columns = [
         { label: 'Id', fieldName: 'Id', type: "text", sortable: "true"},
         { label: 'Name', fieldName: 'Name', type: "text", sortable: "true" }
     ];
-    sortBy;
-    sortDirection;
-    selectedRow = [];
     
-
-
     //-- Modal Handlers --//
     handleCreateList(){
         this.isCreateList = true;
@@ -78,7 +74,6 @@ export default class PardotListControl extends LightningElement {
     }
 
     createList(){
-        console.log('listName :' + this.createListTextNameValue + '>> ' + 'listDescription :' + this.createListTextDescriptionValue);
         createList({listName : this.createListTextNameValue, listDescription : this.createListTextDescriptionValue})
             .then(result => {
                 if(result == true){
@@ -112,7 +107,7 @@ export default class PardotListControl extends LightningElement {
 
     handleSearchOptionsValueChange(event){
         this.SearchOptionsValue = event.detail.value;
-        console.log(this.SearchOptionsValue + ' : ' + this.listNameSearchValue);
+        
         if(this.SearchOptionsValue != null && this.listNameSearchValue != ''){
             this.searchButtonDisabled = false;
         }
@@ -136,7 +131,6 @@ export default class PardotListControl extends LightningElement {
                 this.dispatchEvent(toastEventSuccess);
             })
             .catch(error => {
-                console.log(error);
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: error.body.message,
@@ -149,7 +143,7 @@ export default class PardotListControl extends LightningElement {
             queryList({param : this.listNameSearchValue, isListName : false})
             .then(result => {
                 this.listIdObj = result;
-                console.log('this.listIdObj >' + this.listIdObj);
+                
                 this.handleResults();
                 this.isAddToListDisabled();
             })
@@ -171,8 +165,6 @@ export default class PardotListControl extends LightningElement {
             let listObj = {Id:key, Name:value};
             this.listArray.push(listObj);
         }
-        console.log('***************');
-        console.log(this.listArray);
         if(this.listArray != null){
             if(this.listArray.length > 1){
                 this.multipleListsFound = true;
@@ -187,44 +179,6 @@ export default class PardotListControl extends LightningElement {
             this.noListFound = true;
         }
     }
-
-    isAddToListDisabled(){
-        let firstResultFinal = this.listArray.length == 1 ? true : false;
-        let selectedRowResultFinal = this.selectedRow.length == 1 ? true : false;
-        if(firstResultFinal === true || selectedRowResultFinal === true ){
-            this.addToListButtonDisabled = false;
-        }
-    }
-
-    addToList(){
-        let localListId = this.listArray.length == 1 ? this.listArray[0].Id : this.selectedRow[0];
-        console.log(this.listArray);
-        console.log('**********' + this.selectedRow);
-        console.log(localListId);
-        
-        addProspectToList({listId : localListId, recordId : this.recordId})
-        .then(result => {
-            this.resetCmp();
-            const toastEventSuccess = new ShowToastEvent({
-                title: 'Success',
-                message: 'Member Added To List!',
-                variant: 'success',
-                mode: 'dismissable'
-            });
-            this.dispatchEvent(toastEventSuccess);
-        })
-        .catch(error => {
-            const toastEvent = new ShowToastEvent({
-                title: 'Error',
-                message: error.body.message,
-                variant: 'error',
-                mode: 'dismissable'
-            });
-            this.dispatchEvent(toastEvent);t
-        });
-        
-    }
-
 
     doSorting(event) {
         this.sortBy = event.detail.fieldName;
@@ -256,7 +210,7 @@ export default class PardotListControl extends LightningElement {
             let el = this.template.querySelector('lightning-datatable');
             selectedRows = el.selectedRows = el.selectedRows.slice(1);
             this.selectedRow = selectedRows;
-            console.log('this.selectedRow ' + this.selectedRow);
+            
             this.isAddToListDisabled();
             const toastEvent = new ShowToastEvent({
                 title: 'Error',
@@ -270,12 +224,43 @@ export default class PardotListControl extends LightningElement {
             let el = this.template.querySelector('lightning-datatable');
             selectedRows = el.selectedRows;
             this.selectedRow = selectedRows;
-            console.log(this.selectedRow);
             this.isAddToListDisabled();
         }
-        console.log('+++++++++' + this.selectedRow);
+        
     }
 
+    isAddToListDisabled(){
+        let firstResultFinal = this.listArray.length == 1 ? true : false;
+        let selectedRowResultFinal = this.selectedRow.length == 1 ? true : false;
+        if(firstResultFinal === true || selectedRowResultFinal === true ){
+            this.addToListButtonDisabled = false;
+        }
+    }
+
+    addToList(){
+        let localListId = this.listArray.length == 1 ? this.listArray[0].Id : this.selectedRow[0];
+        addProspectToList({listId : localListId, recordId : this.recordId})
+        .then(result => {
+            this.resetCmp();
+            const toastEventSuccess = new ShowToastEvent({
+                title: 'Success',
+                message: 'Member Added To List!',
+                variant: 'success',
+                mode: 'dismissable'
+            });
+            this.dispatchEvent(toastEventSuccess);
+        })
+        .catch(error => {
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: error.body.message,
+                variant: 'error',
+                mode: 'dismissable'
+            });
+            this.dispatchEvent(toastEvent);t
+        });
+        
+    }
 
     resetCmp(){
         this.isCreateList = false;
