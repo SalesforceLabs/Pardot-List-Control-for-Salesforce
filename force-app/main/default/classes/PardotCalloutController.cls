@@ -69,7 +69,7 @@ public with sharing class PardotCalloutController {
         HttpRequest req = new HttpRequest();
         req.setHeader('Pardot-Business-Unit-Id', buId);
         req.setMethod('POST');
-        req.setEndpoint('callout:'+namedCredentialsName+'/listMembership/version/4/do/create/list_id/'+listId+'/prospect_id/'+prospectId+'?');
+        req.setEndpoint('callout:'+namedCredentialsName+'/listMembership/version/4/do/create/list_id/'+listId+'/prospect_id/'+prospectId+'?format=json');
         Http http = new Http();
         HTTPResponse res = http.send(req);
         return res;

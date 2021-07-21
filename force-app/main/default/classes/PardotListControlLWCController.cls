@@ -2,7 +2,7 @@
  * @description       : 
  * @author            : Jonathan Fox
  * @group             : 
- * @last modified on  : 20-07-2021
+ * @last modified on  : 21-07-2021
  * @last modified by  : Jonathan Fox
  * Modifications Log 
  * Ver   Date         Author         Modification
@@ -26,6 +26,7 @@ public with sharing class PardotListControlLWCController {
     @AuraEnabled
     public static Boolean createList(String listName, String listDescription){
         HTTPResponse response = PardotCalloutController.createList(listName, listDescription);
+        System.debug(response.getBody());
         if(response.getStatusCode() > 299 || response.getStatusCode() < 200){
             throw new PardotListControlLWCControllerException('Failed to create list - ' + response.getBody());
         }else{
@@ -39,6 +40,7 @@ public with sharing class PardotListControlLWCController {
         Map<String, String> idToListNameMap = new Map<String, String>();
         if(isListName){
             response = PardotCalloutController.queryList(param);
+            System.debug(response.getBody());
             if(response.getStatusCode() > 299 || response.getStatusCode() < 200){
                 throw new PardotListControlLWCControllerException('Failed to query lists - ' + response.getBody());
             }else{
@@ -65,6 +67,7 @@ public with sharing class PardotListControlLWCController {
             }
         }else{
             response = PardotCalloutController.queryListById(param);
+            System.debug(response.getBody());
             Map<String, Object> responseMap = (Map<String, Object>) JSON.deserializeUntyped(response.getBody());
             Map<String, Object> results = (Map<String, Object>) responseMap.get('list');
             Integer intId = (Integer)results.get('id');
@@ -102,6 +105,7 @@ public with sharing class PardotListControlLWCController {
             throw new PardotListControlLWCControllerException('Could not find Pardot Prospect ID');
         }
         HTTPResponse response = PardotCalloutController.addToList(listId, prospectId);
+        System.debug(response.getBody());
         if(response.getStatusCode() > 299 || response.getStatusCode() < 200){
             throw new PardotListControlLWCControllerException('Failed to add prospect to list - ' + response.getBody());  
         }
